@@ -1,0 +1,218 @@
+---
+title: "Vienna Night Run"
+subtitle: "Analysis of results 2022"
+author: "@causaest"
+date: "`r format(Sys.time(), '%d %B %Y, %H:%M:%S')`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+# Preamble
+
+Initiate script
+
+```{r}
+rm(list = ls()) # clear workspace
+options(scipen = 999) # disable scientific notation
+tmst <- paste("", format(Sys.time(), "%Y-%m-%d %H:%M")) # get current timestamp
+font_fam <- names(pdfFonts())[10] # set font family
+```
+
+Load packages
+
+```{r, message = FALSE}
+library(dplyr)
+library(ggplot2)
+library(purrr)
+```
+
+Read data with results
+
+```{r}
+z <- readRDS(file = "vnr-results-2022.rds")
+head(z)
+```
+
+## Analysis
+
+The id's of the participants are:
+
+```{r}
+range(z$id)
+```
+
+However, there are gaps
+
+```{r}
+ggplot(z, aes(x = id)) +
+         geom_histogram(color="black", fill="gray", binwidth = 500) +
+  labs(title = "Histogram of ID's")
+```
+
+It seems that the ID's were given according to the registration into four level groups. The groups can be separated as follows:
+
+```{r}
+set.seed(2001)
+groups <- kmeans(z$id, centers = 4, iter.max = 20, algorithm = "Lloyd")
+```
+
+```{r}
+groups$size
+```
+
+Create a group variable
+
+```{r}
+z$group <- factor(groups$cluster)
+```
+
+The ID's per group are:
+
+```{r}
+groups <- z %>% 
+  group_by(group) %>% 
+  summarise(min_group = min(id), max_group = max(id)) %>% 
+  mutate(range_group = max_group - min_group)
+groups
+```
+
+So there were expected no more than 5,000 participants in groups 1, 2, 3 (probably also 4), so a maximum of 20,000 in total.
+
+The times recorded were:
+
+```{r}
+summary(z$time_in_minutes)
+```
+
+```{r}
+z %>% 
+  ggplot(aes(x = time_in_minutes)) +
+  geom_histogram(aes(y = ..density..), color="black", fill="gray", binwidth = 2) +
+  labs(title = "Distribution of times", x = "Time (minutes)", y = "")
+```
+
+Denote whether there was a company affiliation or not:
+
+```{r}
+z$company_bin <- ifelse(is.na(z$company), FALSE, TRUE)
+table(z$company_bin)
+```
+
+Is there a difference between the two groups?
+
+```{r}
+z %>% 
+  ggplot(aes(x = company_bin, y = time_in_minutes)) +
+  geom_boxplot() +
+  labs(title = "Effect of company affiliation on time distribution", 
+       x = "Company affiliation", y = "Time (minutes)")
+```
+
+```{r}
+t.test(time_in_minutes ~ company_bin, data = z)
+```
+
+```{r}
+z %>% 
+  ggplot(aes(x = time_in_minutes, fill = company_bin)) +
+  geom_density(alpha = 0.4) +
+  scale_fill_discrete("Company affiliation") +
+  labs(title = "Effect of company affiliation on time distribution", 
+       x = "Time (minutes)", y = "") +
+  theme(legend.position = "bottom")
+```
+
+Participants with a company affiliation seem to run faster!
+
+Gender is designated in almost all records:
+
+```{r}
+summary(as.factor(z$sex))
+```
+
+```{r}
+zbin <- z[z$sex %in% c("m", "w"), ]
+```
+
+Is there a difference?
+
+```{r}
+z %>% 
+  filter(sex %in% c("m", "w")) %>% 
+  ggplot(aes(x = factor(sex), y = time_in_minutes)) +
+  geom_boxplot() +
+  labs(title = "Effect of gender on time distribution", 
+       x = "Gender (m: Male, w: Female)", y = "Time (minutes)")
+```
+
+```{r}
+t.test(time_in_minutes ~ sex, data = filter(z, sex %in% c("m", "w")))
+```
+
+```{r}
+zbin %>% 
+  filter(sex %in% c("m", "w")) %>% 
+  ggplot(aes(x = time_in_minutes, fill = sex)) +
+  geom_density(alpha = 0.4) +
+  scale_fill_discrete("Gender", labels = c("Male","Female")) +
+  labs(x = "Time (minutes)", y = "",
+       title = "Time")
+```
+
+Males run definitely faster!
+
+```{r}
+z %>% 
+  ggplot(aes(x = factor(group), y = time_in_minutes)) +
+  geom_boxplot() +
+  labs(title = "Time distribution by group", 
+       x = "Group", y = "Time (minutes)")
+```
+
+```{r}
+zbin %>% 
+  ggplot(aes(x = time_in_minutes, fill = group)) +
+  geom_density(alpha = 0.4) +
+  scale_fill_discrete(
+    "Group", 
+    labels = c("< 25 min","25 - 28 min", "28 - 31 min", "> 31 min")
+    ) +
+  labs(title = "Distribution of time by registered group", 
+       x = "Time (minutes)", y = "")
+```
+
+```{r}
+z %>% 
+  group_by(group) %>% 
+  summarise(min_time = min(time_in_minutes),
+            mean_time = mean(time_in_minutes),
+            quant = quantile(time_in_minutes, probs = 0.95),
+            max_time = max(time_in_minutes))
+```
+
+```{r}
+filter(z, group == 1) %>% 
+  mutate(offset = time_in_minutes - 25) %>% 
+  filter(offset > 0) %>% 
+  summarise(mean(offset), n())
+```
+
+```{r}
+filter(z, group == 1) %>% 
+  mutate(offset = time_in_minutes - 28) %>% 
+  filter(offset > 0) %>% 
+  summarise(mean(offset), n())
+```
+
+```{r}
+filter(z, group == 1) %>% 
+  mutate(offset = time_in_minutes - 31) %>% 
+  filter(offset > 0) %>% 
+  summarise(mean(offset), n())
+```
+
+# About
+
+This is an [R Markdown](https://rmarkdown.rstudio.com) Notebook. When code is executed code the notebook, the results appear beneath the code. When the notebook is saved, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
