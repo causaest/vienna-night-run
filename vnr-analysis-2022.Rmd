@@ -40,13 +40,13 @@ head(z)
 The id's of the participants are:
 
 ```{r}
-range(z$id)
+range(z$ID)
 ```
 
 However, there are gaps
 
 ```{r}
-ggplot(z, aes(x = id)) +
+ggplot(z, aes(x = ID)) +
          geom_histogram(color="black", fill="gray", binwidth = 500) +
   labs(title = "Histogram of ID's")
 ```
@@ -55,7 +55,7 @@ It seems that the ID's were given according to the registration into four level 
 
 ```{r}
 set.seed(2001)
-groups <- kmeans(z$id, centers = 4, iter.max = 20, algorithm = "Lloyd")
+groups <- kmeans(z$ID, centers = 4, iter.max = 20, algorithm = "Lloyd")
 ```
 
 ```{r}
@@ -73,7 +73,7 @@ The ID's per group are:
 ```{r}
 groups <- z %>% 
   group_by(group) %>% 
-  summarise(min_group = min(id), max_group = max(id)) %>% 
+  summarise(min_group = min(ID), max_group = max(ID)) %>% 
   mutate(range_group = max_group - min_group)
 groups
 ```
@@ -83,20 +83,20 @@ So there were expected no more than 5,000 participants in groups 1, 2, 3 (probab
 The times recorded were:
 
 ```{r}
-summary(z$time_in_minutes)
+summary(z$time_in_mins)
 ```
 
 ```{r}
 z %>% 
-  ggplot(aes(x = time_in_minutes)) +
-  geom_histogram(aes(y = ..density..), color="black", fill="gray", binwidth = 2) +
+  ggplot(aes(x = time_in_mins)) +
+  geom_histogram(aes(y = after_stat(density)), color="black", fill="gray", binwidth = 2) +
   labs(title = "Distribution of times", x = "Time (minutes)", y = "")
 ```
 
 Denote whether there was a company affiliation or not:
 
 ```{r}
-z$company_bin <- ifelse(is.na(z$company), FALSE, TRUE)
+z$company_bin <- ifelse(z$company == "NA", FALSE, TRUE)
 table(z$company_bin)
 ```
 
@@ -104,19 +104,19 @@ Is there a difference between the two groups?
 
 ```{r}
 z %>% 
-  ggplot(aes(x = company_bin, y = time_in_minutes)) +
+  ggplot(aes(x = company_bin, y = time_in_mins)) +
   geom_boxplot() +
   labs(title = "Effect of company affiliation on time distribution", 
        x = "Company affiliation", y = "Time (minutes)")
 ```
 
 ```{r}
-t.test(time_in_minutes ~ company_bin, data = z)
+t.test(time_in_mins ~ company_bin, data = z)
 ```
 
 ```{r}
 z %>% 
-  ggplot(aes(x = time_in_minutes, fill = company_bin)) +
+  ggplot(aes(x = time_in_mins, fill = company_bin)) +
   geom_density(alpha = 0.4) +
   scale_fill_discrete("Company affiliation") +
   labs(title = "Effect of company affiliation on time distribution", 
@@ -141,31 +141,31 @@ Is there a difference?
 ```{r}
 z %>% 
   filter(sex %in% c("m", "w")) %>% 
-  ggplot(aes(x = factor(sex), y = time_in_minutes)) +
+  ggplot(aes(x = factor(sex), y = time_in_mins)) +
   geom_boxplot() +
   labs(title = "Effect of gender on time distribution", 
-       x = "Gender (m: Male, w: Female)", y = "Time (minutes)")
+       x = "Sex (m: Male, w: Female)", y = "Time (minutes)")
 ```
 
 ```{r}
-t.test(time_in_minutes ~ sex, data = filter(z, sex %in% c("m", "w")))
+t.test(time_in_mins ~ sex, data = filter(z, sex %in% c("m", "w")))
 ```
 
 ```{r}
 zbin %>% 
   filter(sex %in% c("m", "w")) %>% 
-  ggplot(aes(x = time_in_minutes, fill = sex)) +
+  ggplot(aes(x = time_in_mins, fill = sex)) +
   geom_density(alpha = 0.4) +
-  scale_fill_discrete("Gender", labels = c("Male","Female")) +
+  scale_fill_discrete("Sex", labels = c("Male","Female")) +
   labs(x = "Time (minutes)", y = "",
-       title = "Time")
+       title = "Time by sex")
 ```
 
 Males run definitely faster!
 
 ```{r}
 z %>% 
-  ggplot(aes(x = factor(group), y = time_in_minutes)) +
+  ggplot(aes(x = factor(group), y = time_in_mins)) +
   geom_boxplot() +
   labs(title = "Time distribution by group", 
        x = "Group", y = "Time (minutes)")
@@ -173,7 +173,7 @@ z %>%
 
 ```{r}
 zbin %>% 
-  ggplot(aes(x = time_in_minutes, fill = group)) +
+  ggplot(aes(x = time_in_mins, fill = group)) +
   geom_density(alpha = 0.4) +
   scale_fill_discrete(
     "Group", 
@@ -186,29 +186,29 @@ zbin %>%
 ```{r}
 z %>% 
   group_by(group) %>% 
-  summarise(min_time = min(time_in_minutes),
-            mean_time = mean(time_in_minutes),
-            quant = quantile(time_in_minutes, probs = 0.95),
-            max_time = max(time_in_minutes))
+  summarise(min_time = min(time_in_mins),
+            mean_time = mean(time_in_mins),
+            quant = quantile(time_in_mins, probs = 0.95),
+            max_time = max(time_in_mins))
 ```
 
 ```{r}
 filter(z, group == 1) %>% 
-  mutate(offset = time_in_minutes - 25) %>% 
+  mutate(offset = time_in_mins - 25) %>% 
   filter(offset > 0) %>% 
   summarise(mean(offset), n())
 ```
 
 ```{r}
 filter(z, group == 1) %>% 
-  mutate(offset = time_in_minutes - 28) %>% 
+  mutate(offset = time_in_mins - 28) %>% 
   filter(offset > 0) %>% 
   summarise(mean(offset), n())
 ```
 
 ```{r}
 filter(z, group == 1) %>% 
-  mutate(offset = time_in_minutes - 31) %>% 
+  mutate(offset = time_in_mins - 31) %>% 
   filter(offset > 0) %>% 
   summarise(mean(offset), n())
 ```
