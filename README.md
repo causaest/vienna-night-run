@@ -1,3 +1,3 @@
-## Vienna Night Run
+## vienna-night-run
 
-An analysis of the publicly available results of the "Vienna Night Run".
+Analysis of the publicly available results of "Vienna Night Run". It contains a (nearly identical) analysis in both R and Python.
