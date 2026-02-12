@@ -1,6 +1,6 @@
 ---
-title: "Analysis of Vienna Night Run Results"
-subtitle: "Data Cleaning"
+title: "Analysis of Vienna Night Run results"
+subtitle: "Data cleaning"
 author: "Alex"
 date: "`r format(Sys.time(), '%d %B %Y, %H:%M:%S')`"
 output: 
@@ -10,15 +10,17 @@ output:
     number_sections: false
 ---
 
-Read raw data and add column names
+Read raw data and add column names.
 
 ```{r}
 read_vnr_raw <- function(year) {
-  path_to_raw <- paste0("data/raw/vnr-results-public-", year, ".txt")
+  path_to_raw <- paste0("../data/raw/results-public-", year, ".txt")
   raw_data <- read.delim(path_to_raw, header = FALSE, na.strings = " ")
   raw_data <- raw_data[, -c(1, 9)] # Remove columns 1 (index) and 9 (NA)
   # Add column names
-  names(raw_data) <- c("id", "name", "sex", "company", "mins_per_km", "km_per_hour", "time")
+  names(raw_data) <- c(
+    "id", "name", "sex", "company", "mins_per_km", "km_per_hour", "time"
+    )
   return(raw_data)
   }
 ```
@@ -87,8 +89,8 @@ conf_pace <- function(results) {
 ```
 
 ```{r}
-## To check a prticular year, run:
-# 2022 |>
+# # To check a particular year, run:
+# 2025 |>
 #     read_vnr_raw() |>
 #     calc_time() |>
 #     fix_factors() |>
@@ -124,7 +126,7 @@ write_vnr_full <- function(year) {
     calc_time() |>
     fix_factors() |> 
     correct_speed()
-  path_to_full <- paste0("data/raw/vnr-results-full-", year)
+  path_to_full <- paste0("../data/full/results-full-", year)
   write.table(results, file = paste0(path_to_full, ".csv"), 
               sep = ";", row.names = FALSE)
   saveRDS(results, file = paste0(path_to_full, ".rds"))
@@ -132,12 +134,12 @@ write_vnr_full <- function(year) {
 ```
 
 ```{r}
-write_vnr_full(2022)
-write_vnr_full(2023)
-write_vnr_full(2024)
+for (j in 2022:2025) {
+  write_vnr_full(j)
+}
 ```
 
-Save cleaned anonymous results, both as RDS and CSV
+Save cleaned anonymous results, both as RDS and CSV.
 
 ```{r}
 write_vnr_clean <- function(year) {
@@ -147,7 +149,7 @@ write_vnr_clean <- function(year) {
     fix_factors() |> 
     correct_speed() |> 
     keep_cols()
-  path_to_clean <- paste0("data/interim/vnr-results-clean-", year)
+  path_to_clean <- paste0("../data/clean/results-clean-", year)
   write.table(results, file = paste0(path_to_clean, ".csv"), 
               sep = ";", row.names = FALSE)
   saveRDS(results, file = paste0(path_to_clean, ".rds"))
@@ -155,7 +157,7 @@ write_vnr_clean <- function(year) {
 ```
 
 ```{r}
-write_vnr_clean(2022)
-write_vnr_clean(2023)
-write_vnr_clean(2024)
+for (j in 2022:2025) {
+  write_vnr_clean(j)
+}
 ```
