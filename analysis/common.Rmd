@@ -14,11 +14,8 @@ Read full data
 
 ```{r}
 cols_to_keep <- c("name", "id", "sex", "company", "time_secs")
-```
-
-```{r}
 read_full_data <- function(year) {
-  z <- readRDS(paste0("data/raw/vnr-results-full-", year, ".rds"))
+  z <- readRDS(paste0("../data/full/results-full-", year, ".rds"))
   z <- z[, cols_to_keep]
   return(z)
 }
@@ -28,6 +25,7 @@ read_full_data <- function(year) {
 vnr_2022 <- read_full_data(2022)
 vnr_2023 <- read_full_data(2023)
 vnr_2024 <- read_full_data(2024)
+vnr_2025 <- read_full_data(2025)
 ```
 
 ```{r}
@@ -41,21 +39,22 @@ fix_names <- function(x, year) {
 vnr_2022 <- fix_names(vnr_2022, 2022)
 vnr_2023 <- fix_names(vnr_2023, 2023)
 vnr_2024 <- fix_names(vnr_2024, 2024)
+vnr_2025 <- fix_names(vnr_2025, 2025)
 ```
 
 ```{r}
-z1 <- merge(x = vnr_2022, y = vnr_2023, by = "name")
-z <- merge(x = z1, y = vnr_2024, by = "name")
-
+z <- merge(x = vnr_2022, y = vnr_2023, by = "name")
+z <- merge(x = z, y = vnr_2024, by = "name")
+z <- merge(x = z, y = vnr_2025, by = "name")
 head(z)
 ```
 
 uptohere
 
 ```{r}
-z_sex = z[, c("name", "sex_2022", "sex_2023", "sex_2024")]
-z_sex$sex_diff <- apply(z_sex[, c("sex_2022", "sex_2023", "sex_2024")], 1, function(x) length(unique(x)) != 1)
-z_sex[z_sex$sex_diff, c("name", "sex_2022", "sex_2023", "sex_2024")]
+z_sex = z[, c("name", "sex_2022", "sex_2023", "sex_2024", "sex_2025")]
+z_sex$sex_diff <- apply(z_sex[, c("sex_2022", "sex_2023", "sex_2024", "sex_2025")], 1, function(x) length(unique(x)) != 1)
+z_sex[z_sex$sex_diff, c("name", "sex_2022", "sex_2023", "sex_2024", "sex_2025")]
 ```
 
 ```{r}
@@ -63,14 +62,3 @@ z_sex = z[, c("name", "company_2022", "company_2023", "company_2024")]
 z_sex$sex_diff <- apply(z_sex[, c("company_2022", "company_2023", "company_2024")], 1, function(x) length(unique(x)) != 1)
 z_sex[z_sex$sex_diff, c("name", "company_2022", "company_2023", "company_2024")]
 ```
-
-
-
-
-
-
-
-
-
-
-
