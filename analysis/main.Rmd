@@ -1,0 +1,39 @@
+---
+title: "Analysis of Vienna Night Run results"
+subtitle: "Main analysis"
+author: "Alex"
+date: "`r format(Sys.time(), '%d %B %Y, %H:%M:%S')`"
+output: 
+  html_document:
+    df_print: paged
+    toc: true
+    number_sections: false
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+# library(purrr)
+```
+
+```{r}
+z <- readRDS(file = "../data/clean/results-clean-2022.rds")
+head(z)
+```
+
+```{r}
+range(z$id)
+```
+
+```{r}
+ggplot(z, aes(x = id)) +
+         geom_histogram(color="black", fill="gray", binwidth = 500) +
+  labs(title = "Histogram of ID's")
+```
+
+```{r}
+set.seed(2001)
+groups <- stats::kmeans(z$id, centers = 4, iter.max = 20, algorithm = "Lloyd")
+groups$size
+```
+
