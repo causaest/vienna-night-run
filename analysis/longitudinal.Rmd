@@ -21,12 +21,22 @@ read_full_data <- function(year) {
 }
 ```
 
+Create list with results from all years
+
 ```{r}
-vnr_2022 <- read_full_data(2022)
-vnr_2023 <- read_full_data(2023)
-vnr_2024 <- read_full_data(2024)
-vnr_2025 <- read_full_data(2025)
+all_years <- 2022:2025
+vnr_all <- lapply(seq_along(all_years), function(i) i)
+names(vnr_all) <- paste0("vnr-", 2022:2025)
+for (j in seq_along(vnr_all)) {
+  vnr_all[[j]] <- read_full_data(all_years[j])
+}
+# vnr_2022 <- read_full_data(2022)
+# vnr_2023 <- read_full_data(2023)
+# vnr_2024 <- read_full_data(2024)
+# vnr_2025 <- read_full_data(2025)
 ```
+
+Define function to append year to all column names except the "name" column, which is the constant attribute:
 
 ```{r}
 fix_names <- function(x, year) {
@@ -34,6 +44,8 @@ fix_names <- function(x, year) {
   return(x)
 }
 ```
+
+uptohere
 
 ```{r}
 vnr_2022 <- fix_names(vnr_2022, 2022)
@@ -48,8 +60,6 @@ z <- merge(x = z, y = vnr_2024, by = "name")
 z <- merge(x = z, y = vnr_2025, by = "name")
 head(z)
 ```
-
-uptohere
 
 ```{r}
 z_sex = z[, c("name", "sex_2022", "sex_2023", "sex_2024", "sex_2025")]
